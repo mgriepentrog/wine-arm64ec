@@ -1,0 +1,102 @@
+name: Setup llvm-mingw
+description: 'Download and cache llvm-mingw toolchain'
+inputs:
+  version:
+    description: 'llvm-mingw version'
+    required: false
+    default: '20250514'  # Latest version
+  target-arch:
+    description: 'Target architecture (aarch64, armv7, i686, x86_64)'
+    required: false
+    default: 'aarch64'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache llvm-mingw
+      uses: actions/cache@v4
+      id: cache-llvm-mingw
+      with:
+        path: llvm-mingw-${{ inputs.version }}-ucrt-macos-universal/
+        key: llvm-mingw-${{ inputs.version }}-${{ runner.os }}-${{ runner.arch }}
+        restore-keys: |
+          llvm-mingw-${{ inputs.version }}-${{ runner.os }}-
+    
+    - name: Download llvm-mingw
+      if: steps.cache-llvm-mingw.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        echo "Downloading llvm-mingw ${{ inputs.version }}..."
+        curl -L -o llvm-mingw.tar.xz \
+          "https://github.com/mstorsjo/llvm-mingw/releases/download/${{ inputs.version }}/llvm-mingw-${{ inputs.version }}-ucrt-macos-universal.tar.xz"
+        
+        echo "Extracting..."
+        tar -xf llvm-mingw.tar.xz
+        rm llvm-mingw.tar.xz
+        
+        echo "Verifying extraction..."
+        ls -la llvm-mingw-${{ inputs.version }}-ucrt-macos-universal/
+    
+    - name: Setup environment
+      shell: bash
+      run: |
+        LLVM_MINGW_ROOT="$(pwd)/llvm-mingw-${{ inputs.version }}-ucrt-macos-universal"
+        echo "LLVM_MINGW_ROOT=$LLVM_MINGW_ROOT" >> $GITHUB_ENV
+        echo "$LLVM_MINGW_ROOT/bin" >> $GITHUB_PATH
+        
+        # Set cross-compilation variables for target architecture
+        case "${{ inputs.target-arch }}" in
+          "aarch64")
+            echo "CC=aarch64-w64-mingw32-clang" >> $GITHUB_ENV
+            echo "CXX=aarch64-w64-mingw32-clang++" >> $GITHUB_ENV
+            echo "AR=aarch64-w64-mingw32-llvm-ar" >> $GITHUB_ENV
+            echo "STRIP=aarch64-w64-mingw32-llvm-strip" >> $GITHUB_ENV
+            echo "WINDRES=aarch64-w64-mingw32-windres" >> $GITHUB_ENV
+            echo "CROSS_COMPILE=aarch64-w64-mingw32-" >> $GITHUB_ENV
+            ;;
+          "armv7")
+            echo "CC=armv7-w64-mingw32-clang" >> $GITHUB_ENV
+            echo "CXX=armv7-w64-mingw32-clang++" >> $GITHUB_ENV
+            echo "AR=armv7-w64-mingw32-llvm-ar" >> $GITHUB_ENV
+            echo "STRIP=armv7-w64-mingw32-llvm-strip" >> $GITHUB_ENV
+            echo "WINDRES=armv7-w64-mingw32-windres" >> $GITHUB_ENV
+            echo "CROSS_COMPILE=armv7-w64-mingw32-" >> $GITHUB_ENV
+            ;;
+          "x86_64")
+            echo "CC=x86_64-w64-mingw32-clang" >> $GITHUB_ENV
+            echo "CXX=x86_64-w64-mingw32-clang++" >> $GITHUB_ENV
+            echo "AR=x86_64-w64-mingw32-llvm-ar" >> $GITHUB_ENV
+            echo "STRIP=x86_64-w64-mingw32-llvm-strip" >> $GITHUB_ENV
+            echo "WINDRES=x86_64-w64-mingw32-windres" >> $GITHUB_ENV
+            echo "CROSS_COMPILE=x86_64-w64-mingw32-" >> $GITHUB_ENV
+            ;;
+          "i686")
+            echo "CC=i686-w64-mingw32-clang" >> $GITHUB_ENV
+            echo "CXX=i686-w64-mingw32-clang++" >> $GITHUB_ENV
+            echo "AR=i686-w64-mingw32-llvm-ar" >> $GITHUB_ENV
+            echo "STRIP=i686-w64-mingw32-llvm-strip" >> $GITHUB_ENV
+            echo "WINDRES=i686-w64-mingw32-windres" >> $GITHUB_ENV
+            echo "CROSS_COMPILE=i686-w64-mingw32-" >> $GITHUB_ENV
+            ;;
+        esac
+    
+    - name: Verify installation
+      shell: bash
+      run: |
+        echo "=== llvm-mingw Installation Verification ==="
+        echo "Root: $LLVM_MINGW_ROOT"
+        echo "Available toolchains:"
+        ls -la "$LLVM_MINGW_ROOT/bin/" | grep -E "(clang|gcc)" | head -10
+        
+        echo -e "\n=== Testing ${{ inputs.target-arch }} toolchain ==="
+        echo "CC: $CC"
+        if command -v "$CC" &> /dev/null; then
+          $CC --version
+          echo "✓ $CC is working"
+        else
+          echo "✗ $CC not found"
+          exit 1
+        fi
+        
+        echo -e "\n=== Available architectures ==="
+        ls "$LLVM_MINGW_ROOT/bin/" | grep -E ".*-w64-mingw32-clang$" | sed 's/-w64-mingw32-clang$//' | sort
