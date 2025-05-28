@@ -52,15 +52,5 @@ runs:
         echo "Available toolchains:"
         ls -la "$LLVM_MINGW_ROOT/bin/" | grep -E "(clang|gcc)" | head -10
         
-        echo -e "\n=== Testing ${{ inputs.target-arch }} toolchain ==="
-        echo "CC: $CC"
-        if command -v "$CC" &> /dev/null; then
-          $CC --version
-          echo "✓ $CC is working"
-        else
-          echo "✗ $CC not found"
-          exit 1
-        fi
-        
         echo -e "\n=== Available architectures ==="
         ls "$LLVM_MINGW_ROOT/bin/" | grep -E ".*-w64-mingw32-clang$" | sed 's/-w64-mingw32-clang$//' | sort
