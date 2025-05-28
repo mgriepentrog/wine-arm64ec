@@ -43,42 +43,6 @@ runs:
         LLVM_MINGW_ROOT="$(pwd)/llvm-mingw-${{ inputs.version }}-ucrt-macos-universal"
         echo "LLVM_MINGW_ROOT=$LLVM_MINGW_ROOT" >> $GITHUB_ENV
         echo "$LLVM_MINGW_ROOT/bin" >> $GITHUB_PATH
-        
-        # Set cross-compilation variables for target architecture
-        case "${{ inputs.target-arch }}" in
-          "aarch64")
-            echo "CC=aarch64-w64-mingw32-clang" >> $GITHUB_ENV
-            echo "CXX=aarch64-w64-mingw32-clang++" >> $GITHUB_ENV
-            echo "AR=aarch64-w64-mingw32-llvm-ar" >> $GITHUB_ENV
-            echo "STRIP=aarch64-w64-mingw32-llvm-strip" >> $GITHUB_ENV
-            echo "WINDRES=aarch64-w64-mingw32-windres" >> $GITHUB_ENV
-            echo "CROSS_COMPILE=aarch64-w64-mingw32-" >> $GITHUB_ENV
-            ;;
-          "armv7")
-            echo "CC=armv7-w64-mingw32-clang" >> $GITHUB_ENV
-            echo "CXX=armv7-w64-mingw32-clang++" >> $GITHUB_ENV
-            echo "AR=armv7-w64-mingw32-llvm-ar" >> $GITHUB_ENV
-            echo "STRIP=armv7-w64-mingw32-llvm-strip" >> $GITHUB_ENV
-            echo "WINDRES=armv7-w64-mingw32-windres" >> $GITHUB_ENV
-            echo "CROSS_COMPILE=armv7-w64-mingw32-" >> $GITHUB_ENV
-            ;;
-          "x86_64")
-            echo "CC=x86_64-w64-mingw32-clang" >> $GITHUB_ENV
-            echo "CXX=x86_64-w64-mingw32-clang++" >> $GITHUB_ENV
-            echo "AR=x86_64-w64-mingw32-llvm-ar" >> $GITHUB_ENV
-            echo "STRIP=x86_64-w64-mingw32-llvm-strip" >> $GITHUB_ENV
-            echo "WINDRES=x86_64-w64-mingw32-windres" >> $GITHUB_ENV
-            echo "CROSS_COMPILE=x86_64-w64-mingw32-" >> $GITHUB_ENV
-            ;;
-          "i686")
-            echo "CC=i686-w64-mingw32-clang" >> $GITHUB_ENV
-            echo "CXX=i686-w64-mingw32-clang++" >> $GITHUB_ENV
-            echo "AR=i686-w64-mingw32-llvm-ar" >> $GITHUB_ENV
-            echo "STRIP=i686-w64-mingw32-llvm-strip" >> $GITHUB_ENV
-            echo "WINDRES=i686-w64-mingw32-windres" >> $GITHUB_ENV
-            echo "CROSS_COMPILE=i686-w64-mingw32-" >> $GITHUB_ENV
-            ;;
-        esac
     
     - name: Verify installation
       shell: bash
